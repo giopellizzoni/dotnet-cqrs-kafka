@@ -14,8 +14,5 @@ namespace CQRS.Core.Events
 
         public Guid Id { get; init; }
 
-        protected BaseEvent()
-        {
-        }
     }
 }
