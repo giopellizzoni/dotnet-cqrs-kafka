@@ -1,15 +1,16 @@
+using Ardalis.GuardClauses;
 using Post.Common.Events;
 using Post.Query.Domain.Entities;
 using Post.Query.Domain.Repositories;
 
 namespace Post.Query.Infrastructure.Handlers;
 
-public class PostCreatedEventHandler(IPostRepository postRepository) : IEventHandler<PostCreatedEvent>
+public sealed record PostCreatedEventHandler(IPostRepository postRepository) : IEventHandler<PostCreatedEvent>
 {
-    public event EventHandler<PostCreatedEvent>? On;
-
-    public async Task Handler(PostCreatedEvent @event)
+    public async Task Handler(PostCreatedEvent? @event)
     {
+        Guard.Against.Null(@event);
+        
         var post = new PostEntity
         {
             PostId = @event.Id,
@@ -19,4 +20,5 @@ public class PostCreatedEventHandler(IPostRepository postRepository) : IEventHan
         };
         await postRepository.CreateAsync(post);
     }
+
 }

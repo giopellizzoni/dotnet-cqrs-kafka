@@ -1,7 +1,5 @@
-using System.Reflection;
 using Confluent.Kafka;
 using CQRS.Core.Consumers;
-using CQRS.Core.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,26 +48,16 @@ public static class InfrastructureModule
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services)
     {
-        services.AddScoped(typeof(IEventHandler<>));
-        
-        // services.AddScoped<IEventHandler<PostCreatedEvent>, PostCreatedEventHandler>();
-        // services.AddScoped<IEventHandler<PostLikedEvent>, PostLikedEventHandler>();
-        // services.AddScoped<IEventHandler<MessageUpdatedEvent>, MessageUpdatedEventHandler>();
-        // services.AddScoped<IEventHandler<PostRemovedEvent>, PostRemovedEventHandler>();
-        // services.AddScoped<IEventHandler<CommentAddedEvent>, CommentAddedEventHandler>();
-        // services.AddScoped<IEventHandler<CommentRemovedEvent>, CommentRemovedEventHandler>();
-        // services.AddScoped<IEventHandler<CommentUpdatedEvent>, CommentUpdatedEventHandler>();
+        services.AddScoped<IEventHandler<PostCreatedEvent>, PostCreatedEventHandler>();
+        services.AddScoped<IEventHandler<PostLikedEvent>, PostLikedEventHandler>();
+        services.AddScoped<IEventHandler<MessageUpdatedEvent>, MessageUpdatedEventHandler>();
+        services.AddScoped<IEventHandler<PostRemovedEvent>, PostRemovedEventHandler>();
+        services.AddScoped<IEventHandler<CommentAddedEvent>, CommentAddedEventHandler>();
+        services.AddScoped<IEventHandler<CommentRemovedEvent>, CommentRemovedEventHandler>();
+        services.AddScoped<IEventHandler<CommentUpdatedEvent>, CommentUpdatedEventHandler>();
 
         services.AddScoped<IEventConsumer, EventConsumer>();
         return services;
     }
 
-    private static bool IsClass(Type t) => !t.IsAbstract && !t.IsInterface;
-
-    private static IEnumerable<Type> GetEnumerableOfType()
-    {
-        return Assembly.GetExecutingAssembly().GetTypes().Where(t =>
-            t.IsClass && !t.IsAbstract && t.GetInterfaces()
-                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventHandler<>)));
-    }
 }

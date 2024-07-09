@@ -1,19 +1,21 @@
+using Ardalis.GuardClauses;
 using Post.Common.Events;
 using Post.Query.Domain.Repositories;
 
 namespace Post.Query.Infrastructure.Handlers;
 
-public class CommentUpdatedEventHandler(ICommentRepository commentRepository) : IEventHandler<CommentUpdatedEvent>
+public sealed record CommentUpdatedEventHandler(ICommentRepository commentRepository) : IEventHandler<CommentUpdatedEvent>
 {
-    public event EventHandler<CommentUpdatedEvent>? On;
-
-    public async Task Handler(CommentUpdatedEvent eventArgs)
+    public async Task Handler(CommentUpdatedEvent? @event)
     {
-        var comment = await commentRepository.GetByIdAsync(eventArgs.CommentId);
+
+        Guard.Against.Null(@event);
+        
+        var comment = await commentRepository.GetByIdAsync(@event.CommentId);
         if (comment == null) return;
-        comment.Comment = eventArgs.Comment;
+        comment.Comment = @event.Comment;
         comment.Edited = true;
-        comment.CommentDate = eventArgs.EditDate;
+        comment.CommentDate = @event.EditDate;
 
         await commentRepository.UpdateAsync(comment);
     }
