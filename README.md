@@ -50,6 +50,12 @@ The docker-compose stack starts the following services:
 
 > MongoDB and SQL Server are **not** included in docker-compose. Run them separately or use local instances.
 
+> **Important — Kafka hostname resolution:** Kafka advertises itself as `kafka:9092` (Docker-internal hostname). The .NET apps run on the host and use `localhost:9092` as the bootstrap address, but after the initial connection Kafka returns `kafka:9092` in its metadata — which the host cannot resolve. Add this entry to your `/etc/hosts` so the broker is reachable:
+>
+> ```
+> 127.0.0.1 kafka
+> ```
+
 ## 2. Configuration
 
 ### SQL Server password
@@ -151,3 +157,4 @@ This republishes every event from MongoDB to Kafka, which the Query API consumes
 | Aggregate state incorrect | Inspect the event stream in MongoDB (`socialmedia.eventStore`) |
 | `KAFKA_TOPIC environment variable is not set` | Export the variable before starting either API |
 | Connection refused on port 9092 | Ensure `docker-compose up -d` ran successfully; check `docker ps` |
+| Broker not available / metadata error on port 9092 | Kafka advertises `kafka:9092` — add `127.0.0.1 kafka` to `/etc/hosts` |
