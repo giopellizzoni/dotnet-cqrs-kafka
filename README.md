@@ -21,6 +21,8 @@ Client
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
 - [Docker](https://www.docker.com/) and Docker Compose
+- MongoDB instance (default: `localhost:27017`)
+- SQL Server instance (default: `localhost:1433`)
 
 ## 1. Infrastructure Setup
 
@@ -30,20 +32,23 @@ Create the Docker network (one-time):
 docker network create dotnet-kafka-network
 ```
 
-Start all infrastructure services (Kafka, Zookeeper, MongoDB, SQL Server, Schema Registry, AKHQ):
+Start Kafka and related services:
 
 ```bash
 docker-compose up -d
 ```
 
-| Service         | Port | Purpose                |
-|-----------------|------|------------------------|
-| Kafka           | 9092 | Message broker         |
-| Zookeeper       | 2181 | Kafka coordination     |
-| MongoDB         | 27017| Event store            |
-| SQL Server      | 1433 | Read model             |
-| Schema Registry | 8085 | Avro schema management |
-| AKHQ            | 8080 | Kafka management UI    |
+The docker-compose stack starts the following services:
+
+| Service         | Host Port | Purpose                          |
+|-----------------|-----------|----------------------------------|
+| Kafka           | 9092      | Message broker                   |
+| AKHQ            | 8080      | Kafka management UI              |
+| Zookeeper       | —         | Kafka coordination (internal)    |
+| Schema Registry | —         | Avro schema management (internal)|
+| Kafka Connect   | —         | Connector framework (internal)   |
+
+> MongoDB and SQL Server are **not** included in docker-compose. Run them separately or use local instances.
 
 ## 2. Configuration
 
@@ -78,14 +83,14 @@ dotnet build sm-post/SM-Post.sln
 
 Open two terminals — one per API.
 
-**Terminal 1 — Command API (write side, port 5000):**
+**Terminal 1 — Command API (write side, port 5033):**
 
 ```bash
 export KAFKA_TOPIC=SocialMediaPostEvents
 dotnet run --project sm-post/Post.Cmd/Post.Cmd.Api
 ```
 
-**Terminal 2 — Query API (read side, port 5001):**
+**Terminal 2 — Query API (read side, port 5068):**
 
 ```bash
 export KAFKA_TOPIC=SocialMediaPostEvents
@@ -97,42 +102,42 @@ The SQL Server database and tables are created automatically on first startup vi
 
 ## 5. Swagger UI
 
-Once running, open a browser:
+Swagger is available in the `Development` environment only:
 
-- Command API: `http://localhost:5000/swagger`
-- Query API: `http://localhost:5001/swagger`
+- Command API: `http://localhost:5033/swagger`
+- Query API: `http://localhost:5068/swagger`
 
 ## 6. API Endpoints
 
 ### Command API (`Post.Cmd.Api`)
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| `POST` | `/api/v1/Posts` | Create a new post |
-| `PUT` | `/api/v1/Posts/editPost/{id}` | Edit a post's message |
-| `PUT` | `/api/v1/Posts/likePost/{id}` | Like a post |
-| `DELETE` | `/api/v1/Posts/{id}` | Delete a post |
-| `PUT` | `/api/v1/Comments/addComment/{id}` | Add a comment to a post |
-| `PUT` | `/api/v1/Comments/editComment/{id}` | Edit a comment |
-| `DELETE` | `/api/v1/Comments/{id}` | Remove a comment |
-| `POST` | `/api/v1/RestoreReadDb` | Replay all events to rebuild the read model |
+| Method   | Route                               | Description                              |
+|----------|-------------------------------------|------------------------------------------|
+| `POST`   | `/api/v1/Posts`                     | Create a new post                        |
+| `PUT`    | `/api/v1/Posts/editPost/{id}`       | Edit a post's message                    |
+| `PUT`    | `/api/v1/Posts/likePost/{id}`       | Like a post                              |
+| `DELETE` | `/api/v1/Posts/{id}`                | Delete a post                            |
+| `PUT`    | `/api/v1/Comments/addComment/{id}`  | Add a comment to a post                  |
+| `PUT`    | `/api/v1/Comments/editComment/{id}` | Edit a comment                           |
+| `DELETE` | `/api/v1/Comments/{id}`             | Remove a comment (CommentId in body)     |
+| `POST`   | `/api/v1/RestoreReadDb`             | Replay all events to rebuild read model  |
 
 ### Query API (`Post.Query.Api`)
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| `GET` | `/api/v1/PostLookup` | List all posts |
-| `GET` | `/api/v1/PostLookup/{id}` | Get post by ID |
-| `GET` | `/api/v1/PostLookup/byAuthor/{author}` | List posts by author |
-| `GET` | `/api/v1/PostLookup/withLikes/{numberOfLikes}` | List posts with at least N likes |
-| `GET` | `/api/v1/PostLookup/withComments` | List posts that have comments |
+| Method | Route                                      | Description                        |
+|--------|--------------------------------------------|------------------------------------|
+| `GET`  | `/api/v1/PostLookup`                       | List all posts                     |
+| `GET`  | `/api/v1/PostLookup/byId/{id}`             | Get post by ID                     |
+| `GET`  | `/api/v1/PostLookup/byAuthor/{author}`     | List posts by author               |
+| `GET`  | `/api/v1/PostLookup/withLikes/{numberOfLikes}` | List posts with at least N likes |
+| `GET`  | `/api/v1/PostLookup/withComments`          | List posts that have comments      |
 
 ## 7. Rebuilding the Read Model
 
 If the SQL Server read model becomes inconsistent with the MongoDB event store, replay all events:
 
 ```bash
-curl -X POST http://localhost:5000/api/v1/RestoreReadDb
+curl -X POST http://localhost:5033/api/v1/RestoreReadDb
 ```
 
 This republishes every event from MongoDB to Kafka, which the Query API consumes to repopulate SQL Server from scratch.
