@@ -29,13 +29,9 @@ public static class InfrastructureModule
         IConfigurationManager configuration)
     {
         Action<DbContextOptionsBuilder> configureDbContext =
-            (o => o.UseLazyLoadingProxies().UseSqlServer(configuration.GetConnectionString("SqlServer")));
+            (o => o.UseSqlServer(configuration.GetConnectionString("SqlServer")));
         services.AddDbContext<DatabaseContext>(configureDbContext);
         services.AddSingleton(new DatabaseContextFactory(configureDbContext));
-
-        //Create database and tables
-        var dataContext = services.BuildServiceProvider().GetRequiredService<DatabaseContext>();
-        dataContext.Database.EnsureCreated();
 
         return services;
     }

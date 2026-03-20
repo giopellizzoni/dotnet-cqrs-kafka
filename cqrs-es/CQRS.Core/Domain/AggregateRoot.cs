@@ -22,7 +22,7 @@ public abstract class AggregateRoot
     }
 
     protected abstract void Apply(object @event);
-    
+
     private void ApplyChange(BaseEvent @event, bool isNew)
     {
         Apply(@event);

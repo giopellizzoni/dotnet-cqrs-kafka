@@ -4,7 +4,7 @@ using Post.Query.Domain.Repositories;
 
 namespace Post.Query.Infrastructure.Handlers;
 
-public sealed record PostRemovedEventHandler(IPostRepository postRepository) : IEventHandler<PostRemovedEvent>
+public sealed class PostRemovedEventHandler(IPostRepository postRepository) : IEventHandler<PostRemovedEvent>
 {
     public async Task Handler(PostRemovedEvent? @event)
     {

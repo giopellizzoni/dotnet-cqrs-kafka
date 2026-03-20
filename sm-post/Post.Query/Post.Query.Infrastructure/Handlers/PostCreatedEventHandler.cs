@@ -5,12 +5,12 @@ using Post.Query.Domain.Repositories;
 
 namespace Post.Query.Infrastructure.Handlers;
 
-public sealed record PostCreatedEventHandler(IPostRepository postRepository) : IEventHandler<PostCreatedEvent>
+public sealed class PostCreatedEventHandler(IPostRepository postRepository) : IEventHandler<PostCreatedEvent>
 {
     public async Task Handler(PostCreatedEvent? @event)
     {
         Guard.Against.Null(@event);
-        
+
         var post = new PostEntity
         {
             PostId = @event.Id,

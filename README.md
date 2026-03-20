@@ -1,0 +1,148 @@
+# dotnet-cqrs-kafka
+
+A CQRS + Event Sourcing implementation for a social media post service, built with ASP.NET Core, Kafka, MongoDB, and SQL Server.
+
+## Architecture
+
+Two independent ASP.NET Core APIs communicate exclusively through Kafka:
+
+- **Post.Cmd.Api** — Write side. Accepts commands, enforces business rules via `PostAggregate`, persists events to MongoDB, publishes them to Kafka.
+- **Post.Query.Api** — Read side. Consumes Kafka events, projects them into a SQL Server read model, serves queries.
+
+```
+Client
+  │
+  ├─► POST.CMD.API ─► PostAggregate ─► MongoDB (event store) ─► Kafka
+  │
+  └─► POST.QUERY.API ◄─ Kafka ◄─ EventConsumer ─► SQL Server (read model)
+```
+
+## Prerequisites
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- [Docker](https://www.docker.com/) and Docker Compose
+
+## 1. Infrastructure Setup
+
+Create the Docker network (one-time):
+
+```bash
+docker network create dotnet-kafka-network
+```
+
+Start all infrastructure services (Kafka, Zookeeper, MongoDB, SQL Server, Schema Registry, AKHQ):
+
+```bash
+docker-compose up -d
+```
+
+| Service         | Port | Purpose                |
+|-----------------|------|------------------------|
+| Kafka           | 9092 | Message broker         |
+| Zookeeper       | 2181 | Kafka coordination     |
+| MongoDB         | 27017| Event store            |
+| SQL Server      | 1433 | Read model             |
+| Schema Registry | 8085 | Avro schema management |
+| AKHQ            | 8080 | Kafka management UI    |
+
+## 2. Configuration
+
+### SQL Server password
+
+The SQL Server password in `Post.Query.Api/appsettings.json` is set to `CHANGE_ME`. Override it before running:
+
+```bash
+# Option A: environment variable override (recommended)
+export ConnectionStrings__SqlServer="Server=localhost,1433;Database=SocialMedia;User Id=SMUser;Password=<your-password>;TrustServerCertificate=true"
+
+# Option B: dotnet user-secrets (development only)
+cd sm-post/Post.Query/Post.Query.Api
+dotnet user-secrets set "ConnectionStrings:SqlServer" "Server=localhost,1433;Database=SocialMedia;User Id=SMUser;Password=<your-password>;TrustServerCertificate=true"
+```
+
+### Kafka topic
+
+Both APIs require the `KAFKA_TOPIC` environment variable at startup. The app will fail fast with a clear error if it is not set.
+
+```bash
+export KAFKA_TOPIC=SocialMediaPostEvents
+```
+
+## 3. Build
+
+```bash
+dotnet build sm-post/SM-Post.sln
+```
+
+## 4. Run
+
+Open two terminals — one per API.
+
+**Terminal 1 — Command API (write side, port 5000):**
+
+```bash
+export KAFKA_TOPIC=SocialMediaPostEvents
+dotnet run --project sm-post/Post.Cmd/Post.Cmd.Api
+```
+
+**Terminal 2 — Query API (read side, port 5001):**
+
+```bash
+export KAFKA_TOPIC=SocialMediaPostEvents
+export ConnectionStrings__SqlServer="Server=localhost,1433;Database=SocialMedia;User Id=SMUser;Password=<your-password>;TrustServerCertificate=true"
+dotnet run --project sm-post/Post.Query/Post.Query.Api
+```
+
+The SQL Server database and tables are created automatically on first startup via `EnsureCreated()`.
+
+## 5. Swagger UI
+
+Once running, open a browser:
+
+- Command API: `http://localhost:5000/swagger`
+- Query API: `http://localhost:5001/swagger`
+
+## 6. API Endpoints
+
+### Command API (`Post.Cmd.Api`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `POST` | `/api/v1/Posts` | Create a new post |
+| `PUT` | `/api/v1/Posts/editPost/{id}` | Edit a post's message |
+| `PUT` | `/api/v1/Posts/likePost/{id}` | Like a post |
+| `DELETE` | `/api/v1/Posts/{id}` | Delete a post |
+| `PUT` | `/api/v1/Comments/addComment/{id}` | Add a comment to a post |
+| `PUT` | `/api/v1/Comments/editComment/{id}` | Edit a comment |
+| `DELETE` | `/api/v1/Comments/{id}` | Remove a comment |
+| `POST` | `/api/v1/RestoreReadDb` | Replay all events to rebuild the read model |
+
+### Query API (`Post.Query.Api`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `GET` | `/api/v1/PostLookup` | List all posts |
+| `GET` | `/api/v1/PostLookup/{id}` | Get post by ID |
+| `GET` | `/api/v1/PostLookup/byAuthor/{author}` | List posts by author |
+| `GET` | `/api/v1/PostLookup/withLikes/{numberOfLikes}` | List posts with at least N likes |
+| `GET` | `/api/v1/PostLookup/withComments` | List posts that have comments |
+
+## 7. Rebuilding the Read Model
+
+If the SQL Server read model becomes inconsistent with the MongoDB event store, replay all events:
+
+```bash
+curl -X POST http://localhost:5000/api/v1/RestoreReadDb
+```
+
+This republishes every event from MongoDB to Kafka, which the Query API consumes to repopulate SQL Server from scratch.
+
+## 8. Troubleshooting
+
+| Symptom | Action |
+|---------|--------|
+| Query API returns stale or missing data | `POST /api/v1/RestoreReadDb` to replay events |
+| Events not appearing in SQL Server | Check Query API logs for Kafka consumer errors |
+| Aggregate state incorrect | Inspect the event stream in MongoDB (`socialmedia.eventStore`) |
+| `KAFKA_TOPIC environment variable is not set` | Export the variable before starting either API |
+| Connection refused on port 9092 | Ensure `docker-compose up -d` ran successfully; check `docker ps` |

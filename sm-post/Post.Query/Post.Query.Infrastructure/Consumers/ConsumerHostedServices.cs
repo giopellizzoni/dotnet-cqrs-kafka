@@ -19,11 +19,13 @@ public class ConsumerHostedServices : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Event consumer service running.");
+        var topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC")
+            ?? throw new InvalidOperationException("KAFKA_TOPIC environment variable is not set.");
+
         using var scope = _serviceProvider.CreateScope();
         var eventConsumer = scope.ServiceProvider.GetRequiredService<IEventConsumer>();
-        var topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC")!;
 
-        await Task.Run(() => eventConsumer.Consume(topic), cancellationToken);
+        await Task.Run(() => eventConsumer.Consume(topic, cancellationToken), cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

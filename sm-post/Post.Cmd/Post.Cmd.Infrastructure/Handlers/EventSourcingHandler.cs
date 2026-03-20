@@ -30,7 +30,7 @@ public class EventSourcingHandler : IEventSourcingHandler<PostAggregate>
 
         if (events == null || !events.Any())
             return aggregate;
-        
+
         aggregate.ReplayEvents(events);
         aggregate.Version = events.Select(x => x.Version).Max();
         return aggregate;
@@ -42,11 +42,11 @@ public class EventSourcingHandler : IEventSourcingHandler<PostAggregate>
 
         if (aggregateIds == null || !aggregateIds.Any()) return;
         var topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC")!;
-        
+
         foreach (var aggregateId in aggregateIds)
         {
             var aggregate = await GetByIdAsync(aggregateId);
-            if(aggregate == null || !aggregate.Active) continue;
+            if (aggregate == null || !aggregate.Active) continue;
 
             var events = await _eventStore.GetEventsAsync(aggregateId);
             foreach (var @event in events)

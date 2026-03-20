@@ -6,5 +6,5 @@ public interface IBaseRepository<T>
     Task UpdateAsync(T entity);
     Task DeleteAsync(Guid id);
     Task<T?> GetByIdAsync(Guid id);
-    
+
 }

@@ -22,7 +22,6 @@ public class PostRepository(DatabaseContextFactory contextFactory)
         return await context.Posts
             .AsNoTracking()
             .Include(p => p.Comments)
-            .AsNoTracking()
             .ToListAsync();
     }
 
@@ -32,7 +31,6 @@ public class PostRepository(DatabaseContextFactory contextFactory)
         return await context.Posts
             .AsNoTracking()
             .Include(p => p.Comments)
-            .AsNoTracking()
             .Where(x => x.Author.Contains(author))
             .ToListAsync();
     }
@@ -43,7 +41,6 @@ public class PostRepository(DatabaseContextFactory contextFactory)
         return await context.Posts
             .AsNoTracking()
             .Include(p => p.Comments)
-            .AsNoTracking()
             .Where(x => x.Likes >= numberOfLikes)
             .ToListAsync();
     }
@@ -54,8 +51,7 @@ public class PostRepository(DatabaseContextFactory contextFactory)
         return await context.Posts
             .AsNoTracking()
             .Include(p => p.Comments)
-            .AsNoTracking()
-            .Where(x => x.Comments != null && x.Comments.Any())
+            .Where(x => x.Comments.Any())
             .ToListAsync();
     }
 }

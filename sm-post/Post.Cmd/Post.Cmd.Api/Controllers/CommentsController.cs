@@ -1,11 +1,9 @@
-using CQRS.Core.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Post.Cmd.Api.DTOs;
 using Post.Cmd.Application.Commands.Comments.AddComment;
 using Post.Cmd.Application.Commands.Comments.EditComment;
 using Post.Cmd.Application.Commands.Comments.RemoveComment;
-using Post.Cmd.Application.Commands.Posts.NewPost;
 using Post.Common.DTOs;
 
 namespace Post.Cmd.Api.Controllers;
@@ -14,7 +12,6 @@ namespace Post.Cmd.Api.Controllers;
 [Route("api/v1/[controller]")]
 public class CommentsController(IMediator mediator) : ControllerBase
 {
-    
     [HttpPut("addComment/{id}")]
     public async Task<IActionResult> AddCommentAsync(Guid id, AddCommentCommand command)
     {
@@ -23,7 +20,6 @@ public class CommentsController(IMediator mediator) : ControllerBase
 
         return Ok(new BaseResponse { Message = "Add Comment Request Completed Successfully" });
     }
-
 
     [HttpPut("editComment/{id}")]
     public async Task<IActionResult> EditCommentAsync(Guid id, EditCommentCommand command)

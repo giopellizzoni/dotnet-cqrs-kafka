@@ -4,7 +4,7 @@ using Post.Query.Domain.Repositories;
 
 namespace Post.Query.Infrastructure.Handlers;
 
-public sealed record MessageUpdatedEventHandler(IPostRepository postRepository) : IEventHandler<MessageUpdatedEvent>
+public sealed class MessageUpdatedEventHandler(IPostRepository postRepository) : IEventHandler<MessageUpdatedEvent>
 {
     public async Task Handler(MessageUpdatedEvent? @event)
     {

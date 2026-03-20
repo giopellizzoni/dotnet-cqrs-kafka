@@ -7,7 +7,7 @@ public static class EnsureGuardExtensions
 {
     public static void Valid(
         this ICustomGuardClauses _,
-        [System.Diagnostics.CodeAnalysis.NotNull] [ValidatedNotNull] bool? input,
+        [System.Diagnostics.CodeAnalysis.NotNull][ValidatedNotNull] bool? input,
         string? message = null)
     {
         if (input is true)
@@ -19,7 +19,7 @@ public static class EnsureGuardExtensions
 
         throw new InvalidOperationException(message);
     }
-    
+
     public static void False(
         this ICustomGuardClauses _,
         [ValidatedNotNull] bool? input,
@@ -35,10 +35,10 @@ public static class EnsureGuardExtensions
 
         throw new InvalidOperationException(message);
     }
-    
+
     public static void True(
         this ICustomGuardClauses guardClause,
-        [System.Diagnostics.CodeAnalysis.NotNull] [ValidatedNotNull] bool? input,
+        [System.Diagnostics.CodeAnalysis.NotNull][ValidatedNotNull] bool? input,
         string? message = null,
         [CallerArgumentExpression("input")] string? variableName = null)
     {

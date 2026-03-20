@@ -22,10 +22,9 @@ public static class InfrastructureModule
     private static IServiceCollection AddMongo(this IServiceCollection services, IConfigurationManager configuration)
     {
         services.Configure<MongoDbConfig>(configuration.GetSection(nameof(MongoDbConfig)));
-        services.Configure<MongoDbConfig>(configuration);
 
         RegisterMongoBsonClasses();
-        
+
         return services;
     }
 

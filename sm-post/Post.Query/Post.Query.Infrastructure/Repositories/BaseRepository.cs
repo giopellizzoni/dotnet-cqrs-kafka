@@ -4,7 +4,7 @@ using Post.Query.Infrastructure.DataAcces;
 
 namespace Post.Query.Infrastructure.Repositories;
 
-public abstract class BaseRepository<T>: IBaseRepository<T> where T: IEntity
+public abstract class BaseRepository<T> : IBaseRepository<T> where T : class, IEntity
 {
     protected readonly DatabaseContextFactory _contextFactory;
 
@@ -31,7 +31,7 @@ public abstract class BaseRepository<T>: IBaseRepository<T> where T: IEntity
     public async Task DeleteAsync(Guid id)
     {
         await using var context = _contextFactory.CreateDbContext();
-        var entity = await GetByIdAsync(id);
+        var entity = await context.Set<T>().FindAsync(id);
         if (entity == null) return;
 
         context.Remove(entity);

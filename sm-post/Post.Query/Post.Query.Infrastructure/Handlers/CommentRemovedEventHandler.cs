@@ -4,7 +4,7 @@ using Post.Query.Domain.Repositories;
 
 namespace Post.Query.Infrastructure.Handlers;
 
-public sealed record CommentRemovedEventHandler(ICommentRepository commentRepository) : IEventHandler<CommentRemovedEvent>
+public sealed class CommentRemovedEventHandler(ICommentRepository commentRepository) : IEventHandler<CommentRemovedEvent>
 {
     public async Task Handler(CommentRemovedEvent? @event)
     {
