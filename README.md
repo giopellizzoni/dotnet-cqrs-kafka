@@ -80,19 +80,16 @@ Start all services:
 docker-compose up -d
 ```
 
-| Service         | Host Port | Purpose                           |
-|-----------------|-----------|-----------------------------------|
-| Kafka           | 9092      | Message broker                    |
-| AKHQ            | 8080      | Kafka management UI               |
-| Zookeeper       | —         | Kafka coordination (internal)     |
-| Schema Registry | —         | Avro schema management (internal) |
-| Kafka Connect   | —         | Connector framework (internal)    |
-
-> **MongoDB and SQL Server are not in docker-compose.** They must run separately.
+| Service    | Host Port | Purpose             |
+|------------|-----------|---------------------|
+| Kafka      | 9092      | Message broker      |
+| AKHQ       | 8080      | Kafka management UI |
+| MongoDB    | 27017     | Event store (cmd)   |
+| SQL Server | 1433      | Read model (query)  |
 
 ### Kafka hostname resolution
 
-Kafka advertises itself as `kafka:9092` (the Docker-internal hostname). The .NET apps run on the host and bootstrap via `localhost:9092`, but after that first connection Kafka returns `kafka:9092` in its broker metadata — which the host cannot resolve by default.
+Kafka advertises itself as `kafka:29092` for inter-broker communication (the Docker-internal hostname). The .NET apps run on the host and bootstrap via `localhost:9092`, but Kafka can return `kafka:29092` in its broker metadata — which the host cannot resolve by default.
 
 Add this entry to `/etc/hosts`:
 
