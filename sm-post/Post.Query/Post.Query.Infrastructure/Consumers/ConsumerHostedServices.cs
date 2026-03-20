@@ -9,28 +9,41 @@ public class ConsumerHostedServices : IHostedService
 {
     private readonly ILogger<ConsumerHostedServices> _logger;
     private readonly IServiceProvider _serviceProvider;
+    private Task? _consumerTask;
 
-    public ConsumerHostedServices(ILogger<ConsumerHostedServices> logger, IServiceProvider serviceProvider)
+    public ConsumerHostedServices(
+        ILogger<ConsumerHostedServices> logger,
+        IServiceProvider serviceProvider
+    )
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Event consumer service running.");
-        var topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC")
+        var topic =
+            Environment.GetEnvironmentVariable("KAFKA_TOPIC")
             ?? throw new InvalidOperationException("KAFKA_TOPIC environment variable is not set.");
 
-        using var scope = _serviceProvider.CreateScope();
-        var eventConsumer = scope.ServiceProvider.GetRequiredService<IEventConsumer>();
+        _consumerTask = Task.Run(
+            () =>
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var eventConsumer = scope.ServiceProvider.GetRequiredService<IEventConsumer>();
+                eventConsumer.Consume(topic, cancellationToken);
+            },
+            cancellationToken
+        );
 
-        await Task.Run(() => eventConsumer.Consume(topic, cancellationToken), cancellationToken);
+        return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Event consumer service stopped.");
-        return Task.CompletedTask;
+        if (_consumerTask != null)
+            await _consumerTask.WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 }

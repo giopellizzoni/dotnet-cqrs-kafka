@@ -4,7 +4,8 @@ using Post.Query.Infrastructure.DataAcces;
 
 namespace Post.Query.Infrastructure.Repositories;
 
-public abstract class BaseRepository<T> : IBaseRepository<T> where T : class, IEntity
+public abstract class BaseRepository<T> : IBaseRepository<T>
+    where T : class, IEntity
 {
     protected readonly DatabaseContextFactory _contextFactory;
 
@@ -12,7 +13,6 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : class, IE
     {
         _contextFactory = contextFactory;
     }
-
 
     public async Task CreateAsync(T? entity)
     {
@@ -32,7 +32,8 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : class, IE
     {
         await using var context = _contextFactory.CreateDbContext();
         var entity = await context.Set<T>().FindAsync(id);
-        if (entity == null) return;
+        if (entity == null)
+            return;
 
         context.Remove(entity);
         await context.SaveChangesAsync();
