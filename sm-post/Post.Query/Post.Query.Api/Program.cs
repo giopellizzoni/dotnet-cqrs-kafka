@@ -3,8 +3,8 @@ using Post.Query.Application;
 using Post.Query.Infrastructure;
 using Post.Query.Infrastructure.DataAcces;
 
-_ = Environment.GetEnvironmentVariable("KAFKA_TOPIC")
-    ?? throw new InvalidOperationException("KAFKA_TOPIC environment variable is not set.");
+if (Environment.GetEnvironmentVariable("KAFKA_TOPIC") is null)
+    throw new InvalidOperationException("KAFKA_TOPIC environment variable is not set.");
 
 var builder = WebApplication.CreateBuilder(args);
 

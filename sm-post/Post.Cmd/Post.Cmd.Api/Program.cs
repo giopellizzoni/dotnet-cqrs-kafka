@@ -11,9 +11,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-_ =
-    Environment.GetEnvironmentVariable("KAFKA_TOPIC")
-    ?? throw new InvalidOperationException("KAFKA_TOPIC environment variable is not set.");
+if (Environment.GetEnvironmentVariable("KAFKA_TOPIC") is null)
+    throw new InvalidOperationException("KAFKA_TOPIC environment variable is not set.");
 
 var app = builder.Build();
 

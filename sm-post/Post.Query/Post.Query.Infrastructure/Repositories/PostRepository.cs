@@ -12,6 +12,7 @@ public class PostRepository(DatabaseContextFactory contextFactory)
     {
         await using var context = _contextFactory.CreateDbContext();
         return await context.Posts
+            .AsNoTracking()
             .Include(p => p.Comments)
             .FirstOrDefaultAsync(x => x.PostId == postId);
     }
