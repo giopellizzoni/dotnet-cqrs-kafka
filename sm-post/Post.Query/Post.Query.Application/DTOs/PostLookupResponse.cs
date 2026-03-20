@@ -5,5 +5,5 @@ namespace Post.Query.Application.DTOs;
 
 public class PostLookupResponse : BaseResponse
 {
-    public List<PostEntity> Posts { get; set; }
+    public List<PostEntity> Posts { get; set; } = [];
 }

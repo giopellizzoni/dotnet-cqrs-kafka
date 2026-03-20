@@ -18,8 +18,11 @@ public class EventConsumer : IEventConsumer
     private readonly ILogger<EventConsumer> _logger;
     private readonly Dictionary<string, Func<Message<string, string>, Task>> _eventHandlers;
 
-    public EventConsumer(IOptions<ConsumerConfig> config, IServiceProvider serviceProvider,
-        ILogger<EventConsumer> logger)
+    public EventConsumer(
+        IOptions<ConsumerConfig> config,
+        IServiceProvider serviceProvider,
+        ILogger<EventConsumer> logger
+    )
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -46,8 +49,20 @@ public class EventConsumer : IEventConsumer
         consumer.Subscribe(topic);
         while (!cancellationToken.IsCancellationRequested)
         {
-            var consumerResult = consumer.Consume(TimeSpan.FromSeconds(1));
-            if (consumerResult?.Message == null) continue;
+            ConsumeResult<string, string> consumerResult;
+            try
+            {
+                consumerResult = consumer.Consume(TimeSpan.FromSeconds(1));
+            }
+            catch (ConsumeException ex) when (ex.Error.Code == ErrorCode.UnknownTopicOrPart)
+            {
+                _logger.LogWarning("Topic '{Topic}' not yet available, retrying in 2s...", topic);
+                Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).Wait(cancellationToken);
+                continue;
+            }
+
+            if (consumerResult?.Message == null)
+                continue;
 
             _logger.LogInformation("Consuming message: {Value}", consumerResult.Message.Value);
 
@@ -60,7 +75,10 @@ public class EventConsumer : IEventConsumer
 
             if (!_eventHandlers.TryGetValue(eventType, out var handler))
             {
-                _logger.LogWarning("No handler registered for event type: {EventType}. Skipping.", eventType);
+                _logger.LogWarning(
+                    "No handler registered for event type: {EventType}. Skipping.",
+                    eventType
+                );
                 continue;
             }
 
@@ -71,13 +89,18 @@ public class EventConsumer : IEventConsumer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to handle event of type {EventType}. Offset not committed.", eventType);
+                _logger.LogError(
+                    ex,
+                    "Failed to handle event of type {EventType}. Offset not committed.",
+                    eventType
+                );
                 throw;
             }
         }
     }
 
-    private async Task HandleEvent<T>(Message<string, string> message) where T : BaseEvent
+    private async Task HandleEvent<T>(Message<string, string> message)
+        where T : BaseEvent
     {
         var eventHandler = _serviceProvider.GetRequiredService<IEventHandler<T>>();
         var @event = JsonSerializer.Deserialize<T>(message.Value);
