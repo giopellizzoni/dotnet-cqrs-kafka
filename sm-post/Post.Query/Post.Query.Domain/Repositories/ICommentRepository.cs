@@ -4,5 +4,5 @@ namespace Post.Query.Domain.Repositories;
 
 public interface ICommentRepository : IBaseRepository<CommentEntity>
 {
-    
+
 }

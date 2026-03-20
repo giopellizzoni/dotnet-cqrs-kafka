@@ -4,13 +4,15 @@ using Post.Cmd.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+if (Environment.GetEnvironmentVariable("KAFKA_TOPIC") is null)
+    throw new InvalidOperationException("KAFKA_TOPIC environment variable is not set.");
 
 var app = builder.Build();
 
@@ -21,8 +23,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlers>();
 app.UseHttpsRedirection();
 app.MapControllers();
-app.UseMiddleware<ExceptionHandlers>();
 
 app.Run();

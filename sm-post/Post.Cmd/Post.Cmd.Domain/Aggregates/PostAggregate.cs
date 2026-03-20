@@ -26,7 +26,7 @@ public class PostAggregate : AggregateRoot
         Guard.Against.Null(id);
         Guard.Against.NullOrWhiteSpace(author);
         Guard.Against.NullOrWhiteSpace(message);
-        
+
         RaiseEvent(new PostCreatedEvent
         {
             Id = id,
@@ -48,9 +48,9 @@ public class PostAggregate : AggregateRoot
 
     public void LikePost()
     {
-        
+
         GuardExtension.Ensure.True(_active, "You cannot like an inactive post");
-        
+
         RaiseEvent(new PostLikedEvent
         {
             Id = _id
@@ -59,7 +59,7 @@ public class PostAggregate : AggregateRoot
 
     public void AddComment(string comment, string username)
     {
-        GuardExtension.Ensure.True(_active, "You cannot add a comment to and inactive post");
+        GuardExtension.Ensure.True(_active, "You cannot add a comment to an inactive post");
 
         Guard.Against.NullOrWhiteSpace(comment, nameof(comment), "The value of comment cannot be null or empty.");
         Guard.Against.NullOrWhiteSpace(username, nameof(username), "Username cannot be null or empty");
@@ -76,7 +76,7 @@ public class PostAggregate : AggregateRoot
 
     public void EditComment(Guid commentId, string comment, string username)
     {
-        GuardExtension.Ensure.True(_active, "You cannot edit a comment to and inactive post");
+        GuardExtension.Ensure.True(_active, "You cannot edit a comment to an inactive post");
         GuardExtension.Ensure.True(
             _comments[commentId].Item2.Equals(username, StringComparison.CurrentCultureIgnoreCase),
             "You are not allowed to edit a comment that was made by another user!");
@@ -94,7 +94,7 @@ public class PostAggregate : AggregateRoot
 
     public void RemoveComment(Guid commentId, string username)
     {
-        GuardExtension.Ensure.True(_active, "You cannot remove a comment to and inactive post");
+        GuardExtension.Ensure.True(_active, "You cannot remove a comment to an inactive post");
         GuardExtension.Ensure.True(
             _comments[commentId].Item2.Equals(username, StringComparison.CurrentCultureIgnoreCase),
             "You are not allowed to remove a comment that was made by another user!");
@@ -104,10 +104,6 @@ public class PostAggregate : AggregateRoot
             Id = _id,
             CommentId = commentId
         });
-    }
-
-    public void Apply(CommentRemovedEvent @event)
-    {
     }
 
     public void DeletePost(string username)

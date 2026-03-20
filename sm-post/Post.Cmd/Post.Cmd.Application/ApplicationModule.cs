@@ -28,8 +28,8 @@ public static class ApplicationModule
         services.AddScoped<IEventSourcingHandler<PostAggregate>, EventSourcingHandler>();
         services.AddScoped<IEventStoreRepository, EventStoreRepository>();
         services.AddScoped<IEventStore, EventStore>();
-        services.AddScoped<IEventProducer, EventProducer>();
-        
+        services.AddSingleton<IEventProducer, EventProducer>();
+
         return services;
     }
 }

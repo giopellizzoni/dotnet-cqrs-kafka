@@ -9,6 +9,6 @@ public class DatabaseContext : DbContext
     {
     }
 
-    public DbSet<PostEntity?> Posts { get; set; }
-    public DbSet<CommentEntity?> Comments { get; set; }
+    public DbSet<PostEntity> Posts { get; set; } = null!;
+    public DbSet<CommentEntity> Comments { get; set; } = null!;
 }

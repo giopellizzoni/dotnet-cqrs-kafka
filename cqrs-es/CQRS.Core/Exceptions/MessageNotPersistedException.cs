@@ -4,6 +4,6 @@ public class MessageNotPersistedException : Exception
 {
     public MessageNotPersistedException(string message) : base(message)
     {
-        
+
     }
 }

@@ -13,18 +13,20 @@ namespace Post.Cmd.Api.Controllers;
 [Route("api/v1/[controller]")]
 public class PostsController(IMediator mediator) : ControllerBase
 {
-    
     [HttpPost]
     public async Task<IActionResult> NewPostAsync(NewPostCommand command)
     {
         await mediator.Send(command);
-        return StatusCode(StatusCodes.Status201Created, new NewPostResponse
-        {
-            Id = command.Id,
-            Message = "New Post Request completed Successfully"
-        });
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new NewPostResponse
+            {
+                Id = command.Id,
+                Message = "New Post Request completed Successfully",
+            }
+        );
     }
-   
+
     [HttpPut("likePost/{id}")]
     public async Task<IActionResult> LikePostAsync(Guid id)
     {
@@ -48,6 +50,6 @@ public class PostsController(IMediator mediator) : ControllerBase
         command = command with { Id = id };
         await mediator.Send(command);
 
-        return Ok(new BaseResponse { Message = "Remove Comment Request Completed Successfully" });
+        return Ok(new BaseResponse { Message = "Delete Post Request Completed Successfully" });
     }
 }

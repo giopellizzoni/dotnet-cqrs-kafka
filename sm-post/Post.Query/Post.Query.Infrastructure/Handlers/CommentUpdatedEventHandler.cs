@@ -4,13 +4,13 @@ using Post.Query.Domain.Repositories;
 
 namespace Post.Query.Infrastructure.Handlers;
 
-public sealed record CommentUpdatedEventHandler(ICommentRepository commentRepository) : IEventHandler<CommentUpdatedEvent>
+public sealed class CommentUpdatedEventHandler(ICommentRepository commentRepository) : IEventHandler<CommentUpdatedEvent>
 {
     public async Task Handler(CommentUpdatedEvent? @event)
     {
 
         Guard.Against.Null(@event);
-        
+
         var comment = await commentRepository.GetByIdAsync(@event.CommentId);
         if (comment == null) return;
         comment.Comment = @event.Comment;

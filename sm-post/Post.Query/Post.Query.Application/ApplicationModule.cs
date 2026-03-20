@@ -18,7 +18,7 @@ public static class ApplicationModule
         services
             .AddMediatR()
             .AddDependencyInjection();
-        
+
         return services;
     }
 
@@ -33,12 +33,12 @@ public static class ApplicationModule
     {
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
-        
-        
-        
+
+
+
         return services;
     }
 
-  
+
 
 }
